@@ -16,5 +16,4 @@ dist/
 .idea/
 
 # Ignore dependency lock files (optional)
-pnpm-lock.yaml
-yarn.lock
+

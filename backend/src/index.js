@@ -5,10 +5,10 @@ import messageRoutes from "./routes/message.routes.js"
 import cookieParser from "cookie-parser";
 import { connetDB } from "./lib/db.js"
 import cors from "cors";
-
+import {app,server} from "./lib/socket.js"
 
 dotenv.config()
-const app = express()
+
 
 app.use(express.json())
 
@@ -34,7 +34,7 @@ app.use("/api/messages",messageRoutes);
 
 const PORT = process.env.PORT
 
-app.listen(PORT,()=>{
+server.listen(PORT,()=>{
     console.log("server running on port: " + PORT )
     connetDB();
 })

@@ -1,5 +1,7 @@
 import cloudinary from "../lib/cloudinary.js";
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js"
+import { getReceiverSocketId , io} from "../lib/socket.js";
 
 export const getUsersForSideBar = async(req,res) =>{
 
@@ -20,12 +22,12 @@ export const getMessages = async(req,res) =>{
         const {id : userToChatId} = req.params;
         const myId = req.user._id;
 
-        const messages = await find({
+        const messages = await Message.find({
             $or:[
-                {senderId:myId,recieverId :userToChatId},
-                {senderId:userToChatId,recieverId:myId}
+                {senderId:myId,receiverId :userToChatId},
+                {senderId:userToChatId,receiverId:myId}
             ]}
-        );
+        ).sort({ createdAt: 1 });
 
         res.status(200).json(messages);
 
@@ -41,7 +43,7 @@ export const sendMessage = async(req,res) =>{
     try {
         
         const {text , image} = req.body;
-        const {id : recieverId} = req.params;
+        const {id : receiverId} = req.params;
         const myId = req.user._id;
 
         let imageUrl;
@@ -51,15 +53,21 @@ export const sendMessage = async(req,res) =>{
         }
 
         const newMessage = new Message({
-            recieverId,
-            myId,
+            receiverId,
+            senderId :myId,
             text,
-            image :imageUrl
+            Image :imageUrl
         });
 
         await newMessage.save();
 
         //todo : Real time functionality goes here => socket.io
+
+        const receiverSocketId = getReceiverSocketId(receiverId);
+
+        if(receiverSocketId){
+            io.to(receiverSocketId).emit("newMessage",newMessage);
+        } 
 
         res.status(200).json(newMessage);
 
